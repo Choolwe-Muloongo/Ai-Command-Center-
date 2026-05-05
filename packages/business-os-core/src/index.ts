@@ -1,12 +1,13 @@
 export type Scope = { businessId: string; branchId?: string };
-export type AppRole = "OWNER" | "ADMIN" | "MANAGER" | "STAFF";
+export type AppRole = "owner" | "manager" | "finance" | "staff" | "viewer";
 
 export const can = (role: AppRole, permission: string) => {
   const matrix: Record<AppRole, string[]> = {
-    OWNER: ["*"],
-    ADMIN: ["project:read", "project:write", "template:read", "tenant:write", "report:read"],
-    MANAGER: ["project:read", "tenant:write", "report:read"],
-    STAFF: ["project:read", "tenant:read"]
+    owner: ["*"],
+    manager: ["project:read", "project:write", "template:read", "tenant:write", "report:read"],
+    finance: ["project:read", "report:read", "finance:read", "finance:write"],
+    staff: ["project:read", "tenant:read"],
+    viewer: ["project:read", "tenant:read", "template:read", "report:read", "finance:read"]
   };
   return matrix[role].includes("*") || matrix[role].includes(permission);
 };

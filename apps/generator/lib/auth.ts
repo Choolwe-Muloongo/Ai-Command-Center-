@@ -15,5 +15,17 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       const ok = await bcrypt.compare(c.password as string, user.password);
       return ok ? { id: user.id, email: user.email, name: user.name } : null;
     }
-  })]
+  })],
+  callbacks: {
+    jwt: async ({ token, user }) => {
+      if (user) token.sub = user.id;
+      return token;
+    },
+    session: async ({ session, token }) => {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    }
+  }
 });
