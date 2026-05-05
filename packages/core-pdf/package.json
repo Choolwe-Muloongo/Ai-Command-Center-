@@ -1,5 +1,5 @@
 {
-  "name": "@packages/module-registry",
+  "name": "@packages/core-pdf",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "echo lint module-registry",
+    "lint": "echo lint core-pdf",
     "typecheck": "tsc --noEmit"
   }
 }
