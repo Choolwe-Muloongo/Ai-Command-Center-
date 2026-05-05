@@ -8,48 +8,87 @@ datasource db {
 }
 
 model Business {
-  id        String   @id @default(cuid())
-  name      String
-  status    String
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  branches  Branch[]
+  id              String           @id @default(cuid())
+  name            String
+  status          String
+  createdBy       String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  branches        Branch[]
+  users           User[]
+  roles           Role[]
+  permissions     Permission[]
+  templates       Template[]
+  projects        Project[]
+  generatedSystems GeneratedSystem[]
+  supportRequests SupportRequest[]
+  activityLogs    ActivityLog[]
+
+  @@index([status])
 }
 
 model Branch {
-  id         String   @id @default(cuid())
-  businessId String
-  name       String
-  status     String
-  createdBy  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  business   Business @relation(fields: [businessId], references: [id])
+  id              String           @id @default(cuid())
+  businessId      String
+  name            String
+  status          String
+  createdBy       String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  users           User[]
+  roles           Role[]
+  permissions     Permission[]
+  templates       Template[]
+  projects        Project[]
+  generatedSystems GeneratedSystem[]
+  supportRequests SupportRequest[]
+  activityLogs    ActivityLog[]
+
+  @@index([businessId])
+  @@index([status])
 }
 
 model User {
-  id         String   @id @default(cuid())
-  businessId String?
-  branchId   String?
-  email      String   @unique
-  name       String?
-  password   String
-  status     String
-  createdBy  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String        @id @default(cuid())
+  businessId   String?
+  branchId     String?
+  email        String        @unique
+  name         String?
+  password     String
+  status       String
+  createdBy    String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  business     Business?     @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch       Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  userRoles    UserRole[]
+  activityLogs ActivityLog[]
+  supportRequests SupportRequest[]
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([status])
 }
 
 model Role {
-  id         String   @id @default(cuid())
-  businessId String?
-  branchId   String?
-  name       String
-  status     String
-  createdBy  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String       @id @default(cuid())
+  businessId   String?
+  branchId     String?
+  name         String
+  status       String
+  createdBy    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  business     Business?    @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  userRoles    UserRole[]
+  permissions  Permission[] @relation("RolePermissions")
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([status])
+  @@unique([businessId, branchId, name])
 }
 
 model Permission {
@@ -61,39 +100,102 @@ model Permission {
   createdBy  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch     Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  roles      Role[]    @relation("RolePermissions")
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([status])
+  @@unique([businessId, branchId, key])
 }
 
-model ActivityLog {
+model UserRole {
   id         String   @id @default(cuid())
   businessId String?
   branchId   String?
-  action     String
+  userId     String
+  roleId     String
   status     String
   createdBy  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch     Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([status])
+  @@unique([userId, roleId])
 }
 
-model Project {
-  id         String   @id @default(cuid())
-  businessId String
-  branchId   String?
-  templateId String
-  name       String
-  status     String
-  createdBy  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model ActivityLog {
+  id          String   @id @default(cuid())
+  businessId  String?
+  branchId    String?
+  userId      String?
+  action      String
+  entityType  String?
+  entityId    String?
+  metadata    Json?
+  status      String
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch      Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([userId])
+  @@index([action])
+  @@index([status])
 }
 
 model Template {
   id         String   @id @default(cuid())
   businessId String?
-  key        String   @unique
+  branchId   String?
+  key        String
+  name       String?
   status     String
   createdBy  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  branch     Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  projects   Project[]
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([status])
+  @@unique([businessId, branchId, key])
+}
+
+model Project {
+  id               String            @id @default(cuid())
+  businessId       String
+  branchId         String?
+  templateId       String
+  name             String
+  status           String
+  createdBy        String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  business         Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch           Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  template         Template          @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  generatedSystems GeneratedSystem[]
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([templateId])
+  @@index([status])
 }
 
 model GeneratedSystem {
@@ -105,4 +207,34 @@ model GeneratedSystem {
   createdBy  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch     Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model SupportRequest {
+  id          String   @id @default(cuid())
+  businessId  String
+  branchId    String?
+  userId      String?
+  subject     String
+  description String
+  priority    String?
+  status      String
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch      Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([branchId])
+  @@index([userId])
+  @@index([status])
 }
