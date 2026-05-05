@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DATABASE_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  status    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branches  Branch[]
+}
+
+model Branch {
+  id         String   @id @default(cuid())
+  businessId String
+  name       String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  business   Business @relation(fields: [businessId], references: [id])
+}
+
+model User {
+  id         String   @id @default(cuid())
+  businessId String?
+  branchId   String?
+  email      String   @unique
+  name       String?
+  password   String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Role {
+  id         String   @id @default(cuid())
+  businessId String?
+  branchId   String?
+  name       String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Permission {
+  id         String   @id @default(cuid())
+  businessId String?
+  branchId   String?
+  key        String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  businessId String?
+  branchId   String?
+  action     String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Project {
+  id         String   @id @default(cuid())
+  businessId String
+  branchId   String?
+  templateId String
+  name       String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Template {
+  id         String   @id @default(cuid())
+  businessId String?
+  key        String   @unique
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model GeneratedSystem {
+  id         String   @id @default(cuid())
+  businessId String
+  branchId   String?
+  projectId  String
+  status     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
